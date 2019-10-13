@@ -9,7 +9,7 @@
 npm install node-todo-tool -g
 
 # yarn
-yarn global nodo-todo-tool
+yarn global add nodo-todo-tool
 ```
 
 ## 示例
