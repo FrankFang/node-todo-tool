@@ -7,24 +7,28 @@ const updateDb = async list => {
 
 const add = async title => {
   const list = await db.read();
-  list.push({ title, done: false });
-  updateDb(list);
+  list.push({ title, done: false, create_at: new Date() });
+  await updateDb(list);
 };
 
 const clear = async () => {
-  updateDb([]);
+  await updateDb([]);
 };
 
 const handleSelectTask = (list, index) => {
   const taskHandler = {
-    quit: () => {},
+    back: () => {
+      showMainMenu();
+    },
     markAsDone: async () => {
       list[index].done = true;
       await updateDb(list);
+      showMainMenu();
     },
     markAsUndone: async () => {
       list[index].done = false;
       await updateDb(list);
+      showMainMenu();
     },
     updateTitle: () => {
       inquirer
@@ -37,11 +41,13 @@ const handleSelectTask = (list, index) => {
         .then(async answers3 => {
           list[index].title = answers3.title;
           await updateDb(list);
+          showMainMenu();
         });
     },
     remove: async () => {
       list.splice(index, 1);
       await updateDb(list);
+      showMainMenu();
     }
   };
   inquirer
@@ -50,7 +56,7 @@ const handleSelectTask = (list, index) => {
       name: "action",
       message: "请选择操作",
       choices: [
-        { name: "退出", value: "quit" },
+        { name: "返回", value: "back" },
         { name: "已完成", value: "markAsDone" },
         { name: "未完成", value: "markAsUndone" },
         { name: "改标题", value: "updateTitle" },
@@ -64,7 +70,7 @@ const handleSelectTask = (list, index) => {
 };
 
 const handleAddTask = () => {
-  inquirer
+  return inquirer
     .prompt({
       type: "input",
       name: "title",
@@ -79,14 +85,15 @@ const handleAddTask = () => {
     });
 };
 
-const handleMainMenuSelect = (list, answers) => {
+const handleMainMenuSelect = async (list, answers) => {
   const index = parseInt(answers.index);
   if (index >= 0) {
     handleSelectTask(list, index);
     return;
   }
   if (index === -2) {
-    handleAddTask();
+    await handleAddTask();
+    showMainMenu();
   }
 };
 
@@ -103,10 +110,11 @@ const showMainMenu = async () => {
         new inquirer.Separator(),
         ...list.map((task, index) => {
           return {
-            name: `${task.done ? "[完成]" : "[未完成]"} (${index + 1}):${
+            name: `(${index + 1})${task.done ? "[完成]" : "[未完成]"} ${
               task.title
-            }`,
-            value: index.toString()
+            } 创建时间：${new Date(task.create_at).toLocaleString()}`,
+            value: index.toString(),
+            short: task.title
           };
         })
       ]

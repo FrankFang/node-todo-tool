@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const {
   commander_registerCommands,
   commander_init,
